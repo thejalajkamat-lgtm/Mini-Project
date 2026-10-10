@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noteshub - Share Notes. Help Juniors. Earn Money</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-placeholder">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                            <path d="M12 10H28V30H12V10Z" fill="white" opacity="0.9"/>
+                            <line x1="16" y1="16" x2="24" y2="16" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="16" y1="20" x2="24" y2="20" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="16" y1="24" x2="20" y2="24" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                                    <stop offset="0%" stop-color="#6366F1"/>
+                                    <stop offset="100%" stop-color="#8B5CF6"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="brand">
+                        <h1 class="logo-text">Noteshub</h1>
+                        <p class="tagline">Share Notes. Help Juniors. Earn Money</p>
+                    </div>
+                </div>
+                <nav class="nav">
+                    <a href="#home" class="nav-link active">Home</a>
+                    <a href="#browse" class="nav-link">Browse Notes</a>
+                    <a href="#upload" class="nav-link">Upload & Earn</a>
+                    <button class="btn-login" id="loginBtn">Login / Signup</button>
+                </nav>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h2 class="hero-title">Your Gateway to Academic Success</h2>
+                <p class="hero-description">Access thousands of quality notes from top colleges. Share your knowledge and earn while helping juniors succeed.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="notesCount">0</div>
+                        <div class="stat-label">Notes Available</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Colleges</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browse and Filter Section -->
+    <section id="browse" class="browse-section">
+        <div class="container">
+            <h2 class="section-title">Browse Notes</h2>
+            <p class="section-description">Filter and find exactly what you need</p>
+
+            <div class="filter-controls">
+                <div class="search-bar">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12.5 12.5L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search by keyword, topic, or subject..." class="search-input">
+                </div>
+
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="collegeFilter">College</label>
+                        <select id="collegeFilter" class="filter-select">
+                            <option value="">All Colleges</option>
+                            <option value="IIT-Bombay">IIT-Bombay</option>
+                            <option value="KIT CoEK">KIT CoEK</option>
+                            <option value="VIT Pune">VIT Pune</option>
+                            <option value="BITS Pilani">BITS Pilani</option>
+                            <option value="NIT Trichy">NIT Trichy</option>
+                            <option value="COEP">COEP</option>
+                            <option value="MIT Manipal">MIT Manipal</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="subjectFilter">Subject</label>
+                        <select id="subjectFilter" class="filter-select">
+                            <option value="">All Subjects</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Electrical Engineering">Electrical Engineering</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Electronics">Electronics</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="semesterFilter">Semester</label>
+                        <select id="semesterFilter" class="filter-select">
+                            <option value="">All Semesters</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="typeFilter">Type</label>
+                        <select id="typeFilter" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="free">Free</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-reset" id="resetFilters">Reset Filters</button>
+            </div>
+
+            <div class="notes-grid" id="notesGrid">
+                <!-- Notes will be dynamically inserted here -->
+            </div>
+
+            <div class="no-results" id="noResults" style="display: none;">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="30" stroke="#E5E7EB" stroke-width="3"/>
+                    <path d="M40 25V40M40 50V51" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <p>No notes found matching your criteria</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section id="upload" class="upload-section">
+        <div class="container">
+            <div class="upload-header">
+                <h2 class="section-title">Upload & Monetize</h2>
+                <p class="section-description">Share your notes and earn money by helping juniors</p>
+            </div>
+
+            <div class="upload-card">
+                <form id="uploadForm" class="upload-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="noteTitle">Note Title *</label>
+                            <input type="text" id="noteTitle" required placeholder="e.g., Data Structures Complete Notes">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noteCollege">College *</label>
+                            <select id="noteCollege" required>
+                                <option value="">Select College</option>
+                                <option value="IIT-Bombay">IIT-Bombay</option>
+                                <option value="KIT CoEK">KIT CoEK</option>
+                                <option value="VIT Pune">VIT Pune</option>
+                                <option value="BITS Pilani">BITS Pilani</option>
+                                <option value="NIT Trichy">NIT Trichy</option>
+                                <option value="COEP">COEP</option>
+                                <option value="MIT Manipal">MIT Manipal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="noteSubject">Subject *</label>
+                            <select id="noteSubject" required>
+                                <option value="">Select Subject</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Electronics">Electronics</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="noteSemester">Semester *</label>
+                            <select id="noteSemester" required>
+                                <option value="">Select Semester</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noteDescription">Description</label>
+                        <textarea id="noteDescription" rows="3" placeholder="Brief description of your notes..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="noteType">Pricing Type *</label>
+                            <select id="noteType" required>
+                                <option value="free">Free</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="priceGroup" style="display: none;">
+                            <label for="notePrice">Price (₹) *</label>
+                            <input type="number" id="notePrice" min="10" max="5000" placeholder="Enter price">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noteFile">Upload File *</label>
+                        <div class="file-upload">
+                            <input type="file" id="noteFile" accept=".pdf,.doc,.docx,.ppt,.pptx" required hidden>
+                            <button type="button" class="btn-file-upload" onclick="document.getElementById('noteFile').click()">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M10 4V14M10 4L6 8M10 4L14 8M4 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Choose File
+                            </button>
+                            <span id="fileName" class="file-name">No file chosen</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Upload Note</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Premium Access Section -->
+    <section class="premium-section">
+        <div class="container">
+            <h2 class="section-title">Premium All-Access Pass</h2>
+            <p class="section-description">Unlock unlimited access to all premium notes</p>
+
+            <div class="premium-cards">
+                <div class="premium-card">
+                    <div class="premium-badge">Popular</div>
+                    <h3 class="premium-title">Monthly Pass</h3>
+                    <div class="premium-price">
+                        <span class="price-currency">₹</span>
+                        <span class="price-amount">299</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="premium-features">
+                        <li>✓ Access to all premium notes</li>
+                        <li>✓ Unlimited downloads</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ New notes added weekly</li>
+                    </ul>
+                    <button class="btn-premium">Get Started</button>
+                </div>
+
+                <div class="premium-card featured">
+                    <div class="premium-badge premium">Best Value</div>
+                    <h3 class="premium-title">Semester Pass</h3>
+                    <div class="premium-price">
+                        <span class="price-currency">₹</span>
+                        <span class="price-amount">799</span>
+                        <span class="price-period">/6 months</span>
+                    </div>
+                    <ul class="premium-features">
+                        <li>✓ Everything in Monthly</li>
+                        <li>✓ Save ₹995</li>
+                        <li>✓ Exam prep resources</li>
+                        <li>✓ Question banks</li>
+                        <li>✓ Study guides</li>
+                    </ul>
+                    <button class="btn-premium">Get Started</button>
+                </div>
+
+                <div class="premium-card">
+                    <h3 class="premium-title">Annual Pass</h3>
+                    <div class="premium-price">
+                        <span class="price-currency">₹</span>
+                        <span class="price-amount">1499</span>
+                        <span class="price-period">/year</span>
+                    </div>
+                    <ul class="premium-features">
+                        <li>✓ Everything in Semester</li>
+                        <li>✓ Save ₹2089</li>
+                        <li>✓ Lifetime updates</li>
+                        <li>✓ 1-on-1 mentoring (2 sessions)</li>
+                    </ul>
+                    <button class="btn-premium">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Creator Monetization Section -->
+    <section class="creator-section">
+        <div class="container">
+            <div class="creator-content">
+                <div class="creator-text">
+                    <h2 class="section-title">Start Earning as a Creator</h2>
+                    <p class="creator-description">Turn your notes into a revenue stream. Share your knowledge and help thousands of students while earning money.</p>
+                    <div class="creator-stats">
+                        <div class="creator-stat">
+                            <div class="stat-icon">💰</div>
+                            <div>
+                                <div class="stat-value">70%</div>
+                                <div class="stat-text">Revenue Share</div>
+                            </div>
+                        </div>
+                        <div class="creator-stat">
+                            <div class="stat-icon">📈</div>
+                            <div>
+                                <div class="stat-value">₹5K+</div>
+                                <div class="stat-text">Avg. Monthly Earnings</div>
+                            </div>
+                        </div>
+                        <div class="creator-stat">
+                            <div class="stat-icon">⚡</div>
+                            <div>
+                                <div class="stat-value">Instant</div>
+                                <div class="stat-text">Payouts</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#upload" class="btn-creator">Start Uploading</a>
+                </div>
+                <div class="creator-image">
+                    <svg viewBox="0 0 400 300" fill="none">
+                        <rect x="50" y="50" width="300" height="200" rx="12" fill="#6366F1" opacity="0.1"/>
+                        <rect x="80" y="80" width="240" height="30" rx="4" fill="#6366F1" opacity="0.2"/>
+                        <rect x="80" y="130" width="240" height="30" rx="4" fill="#6366F1" opacity="0.2"/>
+                        <rect x="80" y="180" width="180" height="30" rx="4" fill="#6366F1" opacity="0.2"/>
+                        <circle cx="320" cy="100" r="30" fill="#10B981"/>
+                        <path d="M310 100L318 108L332 94" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>Noteshub</h3>
+                    <p>Empowering students through shared knowledge</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Platform</h4>
+                        <a href="#browse">Browse Notes</a>
+                        <a href="#upload">Upload Notes</a>
+                        <a href="#premium">Premium Pass</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Contact Us</a>
+                        <a href="#">FAQs</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Legal</h4>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Copyright Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Noteshub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2 class="modal-title">Welcome to Noteshub</h2>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-tab="login">Login</button>
+                <button class="modal-tab" data-tab="signup">Sign Up</button>
+            </div>
+
+            <div id="loginTab" class="tab-content active">
+                <form class="auth-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="your.email@college.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn-auth">Login</button>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </form>
+            </div>
+
+            <div id="signupTab" class="tab-content">
+                <form class="auth-form">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" placeholder="Your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="your.email@college.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>College</label>
+                        <select required>
+                            <option value="">Select your college</option>
+                            <option value="IIT-Bombay">IIT-Bombay</option>
+                            <option value="KIT CoEK">KIT CoEK</option>
+                            <option value="VIT Pune">VIT Pune</option>
+                            <option value="BITS Pilani">BITS Pilani</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" placeholder="Create a password" required>
+                    </div>
+                    <button type="submit" class="btn-auth">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

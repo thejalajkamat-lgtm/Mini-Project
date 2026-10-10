@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noteshub - File Upload/Download Test</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f9fafb;
+        }
+        .test-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f3f4f6;
+            border-radius: 0.75rem;
+            border-left: 4px solid #6366f1;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 1.25rem;
+        }
+        .test-result {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+        }
+        .test-result.success {
+            border-left: 4px solid #10b981;
+            background: #f0fdf4;
+        }
+        .test-result.error {
+            border-left: 4px solid #ef4444;
+            background: #fef2f2;
+        }
+        .test-result.info {
+            border-left: 4px solid #6366f1;
+            background: #f0f4ff;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        button.secondary {
+            background: #6b7280;
+        }
+        button.secondary:hover {
+            background: #4b5563;
+        }
+        input[type="file"] {
+            margin: 0.5rem 0;
+        }
+        .notes-list {
+            margin: 1rem 0;
+        }
+        .note-item {
+            background: white;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        .note-item strong {
+            color: #6366f1;
+        }
+        .note-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0.5rem 0;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #6366f1;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Noteshub File Upload/Download Test Suite</h1>
+        <p style="color: #6b7280;">Test the file upload and download functionality with real file handling</p>
+
+        <!-- Test Statistics -->
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalNotes">0</div>
+                <div class="stat-label">Total Notes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="storageSize">0KB</div>
+                <div class="stat-label">Storage Used</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="uploadedNotes">0</div>
+                <div class="stat-label">Uploaded Files</div>
+            </div>
+        </div>
+
+        <!-- Test 1: Create Sample File -->
+        <div class="test-section">
+            <h2>Test 1: Create & Upload Sample File</h2>
+            <p>Generate a test PDF file and upload it to localStorage</p>
+            <button onclick="createAndUploadSampleFile()">Create Sample PDF & Upload</button>
+            <button class="secondary" onclick="createAndUploadTextFile()">Create Sample TXT & Upload</button>
+            <div class="test-result" id="test1-result"></div>
+        </div>
+
+        <!-- Test 2: View Uploaded Notes -->
+        <div class="test-section">
+            <h2>Test 2: View All Uploaded Notes</h2>
+            <p>Display all notes stored in localStorage with their file information</p>
+            <button onclick="displayUploadedNotes()">Load & Display Notes</button>
+            <button class="secondary" onclick="clearAllNotes()">Clear All Notes</button>
+            <div class="notes-list" id="test2-result"></div>
+        </div>
+
+        <!-- Test 3: Download File -->
+        <div class="test-section">
+            <h2>Test 3: Download File from Storage</h2>
+            <p>Select a note and trigger download using URL.createObjectURL()</p>
+            <div id="test3-controls"></div>
+            <button onclick="clearDownloadResult()" class="secondary">Clear Result</button>
+            <div class="test-result" id="test3-result"></div>
+        </div>
+
+        <!-- Test 4: Storage Info -->
+        <div class="test-section">
+            <h2>Test 4: Storage Information</h2>
+            <p>Check localStorage usage and statistics</p>
+            <button onclick="getStorageInfo()">Get Storage Info</button>
+            <button class="secondary" onclick="downloadStorageAsJson()">Export as JSON</button>
+            <div class="test-result" id="test4-result"></div>
+        </div>
+
+        <!-- Test 5: File Integrity -->
+        <div class="test-section">
+            <h2>Test 5: Verify File Integrity</h2>
+            <p>Upload and re-download a file to verify data integrity</p>
+            <button onclick="integrityTest()">Run Integrity Test</button>
+            <div class="test-result" id="test5-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Utility: Add log entry
+        function addLog(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
+            element.innerHTML += `<div class="test-result ${type}">[${timestamp}] ${prefix} ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // Get notes from localStorage
+        function getNotesFromStorage() {
+            const notes = localStorage.getItem('noteshub_notes');
+            return notes ? JSON.parse(notes) : [];
+        }
+
+        // Save notes to localStorage
+        function saveNotesToStorage(notes) {
+            localStorage.setItem('noteshub_notes', JSON.stringify(notes));
+        }
+
+        // Test 1: Create and upload sample PDF
+        function createAndUploadSampleFile() {
+            const resultId = 'test1-result';
+            document.getElementById(resultId).innerHTML = '';
+            addLog(resultId, 'Creating sample PDF file...', 'info');
+
+            try {
+                // Create a simple PDF-like content
+                const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 44 >>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(Sample Notes - Data Structures) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000273 00000 n
+0000000352 00000 n
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+445
+%%EOF`;
+
+                const blob = new Blob([pdfContent], { type: 'application/pdf' });
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const base64String = event.target.result.split(',')[1];
+
+                    const notes = getNotesFromStorage();
+                    const newNote = {
+                        id: Date.now(),
+                        title: 'Sample PDF - Data Structures Complete Notes',
+                        college: 'IIT-Bombay',
+                        subject: 'Computer Science',
+                        semester: '3',
+                        type: 'free',
+                        price: 0,
+                        description: 'Test PDF with file upload functionality',
+                        author: 'Test User',
+                        fileName: 'Data-Structures-Notes.pdf',
+                        fileMimeType: 'application/pdf',
+                        fileData: base64String,
+                        fileSize: blob.size,
+                        uploadedAt: new Date().toISOString()
+                    };
+
+                    notes.unshift(newNote);
+                    saveNotesToStorage(notes);
+
+                    addLog(resultId, `Successfully created and uploaded: ${newNote.fileName}`, 'success');
+                    addLog(resultId, `File size: ${(blob.size / 1024).toFixed(2)} KB`, 'info');
+                    addLog(resultId, `Base64 encoded: ${base64String.substring(0, 50)}...`, 'info');
+                    updateStats();
+                };
+
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                addLog(resultId, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Create and upload text file
+        function createAndUploadTextFile() {
+            const resultId = 'test1-result';
+            document.getElementById(resultId).innerHTML = '';
+            addLog(resultId, 'Creating sample TXT file...', 'info');
+
+            try {
+                const textContent = `ADVANCED CALCULUS STUDY GUIDE
+================================
+
+Chapter 1: Limits and Continuity
+- Definition of limit
+- Continuous functions
+- Theorems on continuity
+
+Chapter 2: Derivatives
+- Rate of change
+- Power rule
+- Chain rule
+
+Chapter 3: Integration
+- Antiderivatives
+- Definite integrals
+- Applications
+
+Created for IIT-Bombay students`;
+
+                const blob = new Blob([textContent], { type: 'text/plain' });
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const base64String = event.target.result.split(',')[1];
+
+                    const notes = getNotesFromStorage();
+                    const newNote = {
+                        id: Date.now(),
+                        title: 'Advanced Calculus Study Guide',
+                        college: 'KIT CoEK',
+                        subject: 'Mathematics',
+                        semester: '2',
+                        type: 'free',
+                        price: 0,
+                        description: 'Comprehensive calculus notes with examples',
+                        author: 'Test User',
+                        fileName: 'Calculus-Notes.txt',
+                        fileMimeType: 'text/plain',
+                        fileData: base64String,
+                        fileSize: blob.size,
+                        uploadedAt: new Date().toISOString()
+                    };
+
+                    notes.unshift(newNote);
+                    saveNotesToStorage(notes);
+
+                    addLog(resultId, `Successfully created and uploaded: ${newNote.fileName}`, 'success');
+                    addLog(resultId, `File size: ${(blob.size / 1024).toFixed(2)} KB`, 'info');
+                    addLog(resultId, `Content preview: "${textContent.substring(0, 50)}..."`, 'info');
+                    updateStats();
+                };
+
+                reader.readAsDataURL(blob);
+            } catch (error) {
+                addLog(resultId, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Display uploaded notes
+        function displayUploadedNotes() {
+            const resultId = 'test2-result';
+            document.getElementById(resultId).innerHTML = '';
+
+            try {
+                const notes = getNotesFromStorage();
+
+                if (notes.length === 0) {
+                    document.getElementById(resultId).innerHTML = '<div class="test-result info">No notes found in localStorage</div>';
+                    return;
+                }
+
+                let html = `<div class="test-result info">Found ${notes.length} note(s) in storage</div>`;
+
+                notes.forEach((note, index) => {
+                    const hasFile = !!note.fileData;
+                    html += `
+                        <div class="note-item">
+                            <strong>${index + 1}. ${note.title}</strong>
+                            <div class="note-info">
+                                📍 ${note.college} | 📚 ${note.subject} | Sem ${note.semester}
+                            </div>
+                            <div class="note-info">
+                                💾 File: ${note.fileName} (${note.fileMimeType})
+                            </div>
+                            <div class="note-info">
+                                📦 Size: ${note.fileSize ? (note.fileSize / 1024).toFixed(2) : 'unknown'} KB | Has File Data: ${hasFile ? '✓' : '✗'}
+                            </div>
+                            <div class="note-info">
+                                Type: ${note.type} ${note.type === 'premium' ? `| Price: ₹${note.price}` : ''}
+                            </div>
+                            <button onclick="downloadSpecificNote(${note.id})">Download</button>
+                            <button class="secondary" onclick="deleteNote(${note.id})">Delete</button>
+                        </div>
+                    `;
+                });
+
+                document.getElementById(resultId).innerHTML = html;
+                updateStats();
+            } catch (error) {
+                addLog(resultId, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Download specific note
+        function downloadSpecificNote(noteId) {
+            const notes = getNotesFromStorage();
+            const note = notes.find(n => n.id === noteId);
+
+            if (!note) {
+                addLog('test3-result', `Note not found`, 'error');
+                return;
+            }
+
+            if (!note.fileData) {
+                addLog('test3-result', `No file data for: ${note.title}`, 'error');
+                return;
+            }
+
+            try {
+                addLog('test3-result', `Starting download: ${note.fileName}`, 'info');
+
+                // Convert base64 back to blob
+                const binaryString = atob(note.fileData);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const blob = new Blob([bytes], { type: note.fileMimeType || 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+
+                addLog('test3-result', `Created object URL: ${url.substring(0, 50)}...`, 'info');
+                addLog('test3-result', `Blob size: ${(blob.size / 1024).toFixed(2)} KB`, 'info');
+
+                // Create download link
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = note.fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                addLog('test3-result', `✓ Download triggered for: ${note.fileName}`, 'success');
+
+                // Clean up
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                    addLog('test3-result', `Cleaned up object URL`, 'info');
+                }, 100);
+            } catch (error) {
+                addLog('test3-result', `Download error: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete note
+        function deleteNote(noteId) {
+            const notes = getNotesFromStorage();
+            const filtered = notes.filter(n => n.id !== noteId);
+            saveNotesToStorage(filtered);
+            displayUploadedNotes();
+        }
+
+        // Clear all notes
+        function clearAllNotes() {
+            if (confirm('Are you sure you want to delete all notes?')) {
+                localStorage.removeItem('noteshub_notes');
+                document.getElementById('test2-result').innerHTML = '<div class="test-result info">All notes cleared</div>';
+                updateStats();
+            }
+        }
+
+        // Get storage info
+        function getStorageInfo() {
+            const resultId = 'test4-result';
+            document.getElementById(resultId).innerHTML = '';
+
+            try {
+                const notes = getNotesFromStorage();
+                const storageJson = JSON.stringify(notes);
+                const storageSize = new Blob([storageJson]).size;
+
+                addLog(resultId, `Total notes: ${notes.length}`, 'info');
+                addLog(resultId, `Storage size: ${(storageSize / 1024).toFixed(2)} KB`, 'info');
+                addLog(resultId, `Max localStorage: ~5-10 MB`, 'info');
+
+                let totalFileSize = 0;
+                let uploadedCount = 0;
+
+                notes.forEach(note => {
+                    if (note.fileData) {
+                        uploadedCount++;
+                        totalFileSize += note.fileSize || 0;
+                    }
+                });
+
+                addLog(resultId, `Notes with files: ${uploadedCount}`, 'info');
+                addLog(resultId, `Total file size: ${(totalFileSize / 1024).toFixed(2)} KB`, 'info');
+                addLog(resultId, `Estimated base64 size: ${((storageSize - 500) / 1024).toFixed(2)} KB`, 'info');
+            } catch (error) {
+                addLog(resultId, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Download storage as JSON
+        function downloadStorageAsJson() {
+            try {
+                const notes = getNotesFromStorage();
+                const dataStr = JSON.stringify(notes, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `noteshub-backup-${Date.now()}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                addLog('test4-result', `✓ Exported ${notes.length} notes as JSON`, 'success');
+            } catch (error) {
+                addLog('test4-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Integrity test
+        function integrityTest() {
+            const resultId = 'test5-result';
+            document.getElementById(resultId).innerHTML = '';
+            addLog(resultId, 'Starting file integrity test...', 'info');
+
+            try {
+                // Create test content
+                const testContent = 'INTEGRITY TEST FILE\n' + 'Hello World! '.repeat(100) + '\nTest completed at ' + new Date().toISOString();
+                const originalBlob = new Blob([testContent], { type: 'text/plain' });
+                const originalSize = originalBlob.size;
+
+                // Upload
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64String = event.target.result.split(',')[1];
+
+                    addLog(resultId, `Original size: ${(originalSize / 1024).toFixed(2)} KB`, 'info');
+                    addLog(resultId, `Base64 length: ${base64String.length}`, 'info');
+
+                    // Download
+                    const binaryString = atob(base64String);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    const downloadedBlob = new Blob([bytes], { type: 'text/plain' });
+                    const downloadedSize = downloadedBlob.size;
+
+                    addLog(resultId, `Downloaded size: ${(downloadedSize / 1024).toFixed(2)} KB`, 'info');
+
+                    if (originalSize === downloadedSize) {
+                        addLog(resultId, `✓ File sizes match: ${originalSize} bytes`, 'success');
+                    } else {
+                        addLog(resultId, `✗ File size mismatch! Original: ${originalSize}, Downloaded: ${downloadedSize}`, 'error');
+                    }
+
+                    // Verify content
+                    const downloadedReader = new FileReader();
+                    downloadedReader.onload = function(downloadEvent) {
+                        const downloadedContent = downloadEvent.target.result;
+                        if (testContent === downloadedContent) {
+                            addLog(resultId, `✓ Content integrity verified!`, 'success');
+                            addLog(resultId, `File can be safely uploaded and downloaded`, 'success');
+                        } else {
+                            addLog(resultId, `✗ Content mismatch detected!`, 'error');
+                        }
+                    };
+                    downloadedBlob.text().then(text => {
+                        if (testContent === text) {
+                            addLog(resultId, `✓ Content integrity verified!`, 'success');
+                            addLog(resultId, `File can be safely uploaded and downloaded`, 'success');
+                        }
+                    });
+                };
+
+                reader.readAsDataURL(originalBlob);
+            } catch (error) {
+                addLog(resultId, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const notes = getNotesFromStorage();
+            const storageJson = JSON.stringify(notes);
+            const storageSize = new Blob([storageJson]).size;
+            let uploadedCount = 0;
+
+            notes.forEach(note => {
+                if (note.fileData) uploadedCount++;
+            });
+
+            document.getElementById('totalNotes').textContent = notes.length;
+            document.getElementById('storageSize').textContent = (storageSize / 1024).toFixed(1) + 'KB';
+            document.getElementById('uploadedNotes').textContent = uploadedCount;
+        }
+
+        // Clear download result
+        function clearDownloadResult() {
+            document.getElementById('test3-result').innerHTML = '';
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            updateStats();
+        });
+    </script>
+</body>
+</html>
