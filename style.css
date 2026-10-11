@@ -1096,3 +1096,13 @@ body {
 html {
     scroll-behavior: smooth;
 }
+
+/* Password Feedback Styling */
+.password-feedback {
+    margin-top: 0.5rem;
+    min-height: 1.25rem;
+}
+
+.form-group input[type="password"] {
+    transition: var(--transition);
+}

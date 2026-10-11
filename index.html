@@ -432,18 +432,18 @@
             </div>
 
             <div id="signupTab" class="tab-content">
-                <form class="auth-form">
+                <form class="auth-form" id="signupForm">
                     <div class="form-group">
                         <label>Full Name</label>
-                        <input type="text" placeholder="Your name" required>
+                        <input type="text" id="signupName" placeholder="Your name" required>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" placeholder="your.email@college.edu" required>
+                        <input type="email" id="signupEmail" placeholder="your.email@college.edu" required>
                     </div>
                     <div class="form-group">
                         <label>College</label>
-                        <select required>
+                        <select id="signupCollege" required>
                             <option value="">Select your college</option>
                             <option value="IIT-Bombay">IIT-Bombay</option>
                             <option value="KIT CoEK">KIT CoEK</option>
@@ -453,9 +453,10 @@
                     </div>
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" placeholder="Create a password" required>
+                        <input type="password" id="signupPassword" placeholder="Create a password" required>
+                        <div class="password-feedback" id="passwordFeedback"></div>
                     </div>
-                    <button type="submit" class="btn-auth">Sign Up</button>
+                    <button type="submit" class="btn-auth" id="signupBtn">Sign Up</button>
                 </form>
             </div>
         </div>

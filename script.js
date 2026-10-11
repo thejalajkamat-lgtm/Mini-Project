@@ -317,14 +317,51 @@ function setupEventListeners() {
         });
     });
 
-    // Auth forms (prevent default for demo)
-    document.querySelectorAll('.auth-form').forEach(form => {
-        form.addEventListener('submit', (e) => {
+    // Signup form with password validation
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('signupPassword').value;
+            const passwordValidation = validatePassword(password);
+
+            if (!passwordValidation.isValid) {
+                highlightPasswordField(true);
+                displayPasswordFeedback(passwordValidation.errors);
+                return;
+            }
+
+            highlightPasswordField(false);
+            document.getElementById('passwordFeedback').innerHTML = '';
+            showSuccessMessage('Signup successful! Welcome to Noteshub.');
+            loginModal.style.display = 'none';
+            signupForm.reset();
+        });
+
+        // Real-time password validation feedback
+        document.getElementById('signupPassword').addEventListener('input', (e) => {
+            const password = e.target.value;
+            if (password.length > 0) {
+                const validation = validatePassword(password);
+                displayPasswordFeedback(validation.errors);
+                highlightPasswordField(!validation.isValid);
+            } else {
+                document.getElementById('passwordFeedback').innerHTML = '';
+                highlightPasswordField(false);
+            }
+        });
+    }
+
+    // Login form
+    const loginForm = document.querySelector('#loginTab .auth-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             showSuccessMessage('Login successful! Welcome to Noteshub.');
             loginModal.style.display = 'none';
         });
-    });
+    }
 
     // Premium buttons
     document.querySelectorAll('.btn-premium').forEach(btn => {
@@ -498,3 +535,58 @@ window.addEventListener('scroll', () => {
         }
     });
 });
+
+// Password validation function
+function validatePassword(password) {
+    const errors = [];
+
+    // Check minimum length (at least 5 characters)
+    if (password.length < 5) {
+        errors.push('Password must be at least 5 characters long');
+    }
+
+    // Check for at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        errors.push('Password must contain at least 1 uppercase letter');
+    }
+
+    // Check for at least one number
+    if (!/[0-9]/.test(password)) {
+        errors.push('Password must contain at least 1 number');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+// Display password feedback messages
+function displayPasswordFeedback(errors) {
+    const feedbackDiv = document.getElementById('passwordFeedback');
+
+    if (errors.length === 0) {
+        feedbackDiv.innerHTML = '<span style="color: #10B981; font-size: 13px; font-weight: 500;">✓ Password is strong</span>';
+        return;
+    }
+
+    feedbackDiv.innerHTML = errors.map(error =>
+        `<div style="color: #EF4444; font-size: 13px; margin: 4px 0; display: flex; align-items: center;">
+            <span style="margin-right: 6px;">✗</span>${error}
+        </div>`
+    ).join('');
+}
+
+// Highlight password field when invalid
+function highlightPasswordField(isInvalid) {
+    const passwordInput = document.getElementById('signupPassword');
+    if (!passwordInput) return;
+
+    if (isInvalid) {
+        passwordInput.style.borderColor = '#EF4444';
+        passwordInput.style.backgroundColor = '#FEF2F2';
+    } else {
+        passwordInput.style.borderColor = '';
+        passwordInput.style.backgroundColor = '';
+    }
+}
