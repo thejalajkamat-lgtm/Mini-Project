@@ -8,7 +8,7 @@
  * 4. Serving the static frontend
  *
  * Payment Method:
- * - Direct UPI/GPay to: 9292879960
+ * - Direct UPI/GPay to: +91 9209287996
  * - User scans QR or uses UPI ID
  * - Manual verification of payment
  */
@@ -40,8 +40,8 @@ app.use(express.static(path.join(__dirname)));
  * Direct payment details for manual verification
  */
 const UPI_CONFIG = {
-    phoneNumber: process.env.UPI_PHONE_NUMBER || '9292879960',
-    upiId: process.env.UPI_ID || 'jalajkamat@okhdfcbank',
+    phoneNumber: process.env.UPI_PHONE_NUMBER || '9209287996',
+    upiId: process.env.UPI_ID || '9209287996@okaxis',
     merchantName: 'Noteshub',
     notes: 'Premium Notes Purchase'
 };
@@ -280,7 +280,7 @@ app.get('/api/test', (req, res) => {
         success: true,
         message: 'UPI payment server is running',
         environment: process.env.NODE_ENV || 'development',
-        upiConfigured: !!UPI_CONFIG.phoneNumber && UPI_CONFIG.phoneNumber !== '9292879960'
+        upiConfigured: !!UPI_CONFIG.phoneNumber && UPI_CONFIG.phoneNumber !== '9209287996'
     });
 });
 
