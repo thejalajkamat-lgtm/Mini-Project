@@ -185,15 +185,15 @@ function resetFilters() {
     loadNotes();
 }
 
-// Download note function - triggers real file download
+// Download note function - triggers real file download or payment
 function downloadNote(noteId) {
     const notes = getNotesFromStorage();
     const note = notes.find(n => n.id === noteId);
 
     if (note) {
         if (note.type === 'premium') {
-            showSuccessMessage(`Redirecting to payment for "${note.title}"...`);
-            // In a real app, this would redirect to a payment page
+            // Open payment modal for premium notes
+            openPaymentModal(note);
         } else if (note.fileData) {
             // Convert base64 back to blob and trigger download
             try {
@@ -590,3 +590,234 @@ function highlightPasswordField(isInvalid) {
         passwordInput.style.backgroundColor = '';
     }
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * DIRECT UPI/GPAY PAYMENT INTEGRATION
+ * ═══════════════════════════════════════════════════════════════════════
+ *
+ * This section handles direct UPI payments:
+ * 1. User clicks "Buy Now" on a premium note
+ * 2. Payment modal opens with note details and QR code
+ * 3. User scans QR with GPay or UPI app
+ * 4. User completes payment in their banking app
+ * 5. User confirms payment in the modal
+ * 6. Access is granted to the premium note
+ */
+
+// Store current note being purchased (for payment flow)
+let currentPaymentNote = null;
+let currentPaymentId = null;
+
+/**
+ * Open Payment Modal
+ *
+ * Displays payment details for the selected premium note
+ * Generates UPI QR code for payment
+ */
+function openPaymentModal(note) {
+    currentPaymentNote = note;
+
+    // Update payment modal with note details
+    document.getElementById('paymentNoteTitle').textContent = note.title;
+    document.getElementById('paymentNotePrice').textContent = `₹${note.price}`;
+    document.getElementById('paymentNoteAuthor').textContent = `By ${note.author || 'Unknown'}`;
+    document.getElementById('paymentAmount').textContent = `₹${note.price}`;
+
+    // Show payment modal
+    document.getElementById('paymentModal').style.display = 'block';
+    document.getElementById('paymentDetails').style.display = 'block';
+    document.getElementById('paymentLoading').style.display = 'none';
+    document.getElementById('paymentSuccess').style.display = 'none';
+    document.getElementById('paymentError').style.display = 'none';
+
+    // Generate QR code
+    generateUPIQRCode(note);
+
+    console.log('💳 Payment modal opened for:', note.title, '(₹' + note.price + ')');
+}
+
+/**
+ * Close Payment Modal
+ */
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    currentPaymentNote = null;
+    currentPaymentId = null;
+    console.log('💳 Payment modal closed');
+}
+
+/**
+ * Generate UPI QR Code
+ *
+ * Creates a QR code that encodes the UPI payment link
+ * User can scan this with GPay or any UPI app
+ */
+async function generateUPIQRCode(note) {
+    try {
+        // First, create a payment request to get UPI link
+        const paymentResponse = await fetch('/api/create-payment-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: note.price,
+                currency: 'INR',
+                noteId: note.id,
+                userId: 'user_' + Date.now(),
+                noteTitle: note.title
+            })
+        });
+
+        if (!paymentResponse.ok) {
+            throw new Error('Failed to create payment request');
+        }
+
+        const paymentData = await paymentResponse.json();
+
+        if (!paymentData.success) {
+            throw new Error(paymentData.error || 'Payment request creation failed');
+        }
+
+        // Store payment ID for later confirmation
+        currentPaymentId = paymentData.paymentId;
+
+        console.log('✓ Payment request created:', paymentData.paymentId);
+        console.log('  UPI Link:', paymentData.upiLink);
+
+        // Clear previous QR code
+        document.getElementById('qrCode').innerHTML = '';
+
+        // Generate QR code from UPI link
+        new QRCode(document.getElementById('qrCode'), {
+            text: paymentData.upiLink,
+            width: 200,
+            height: 200,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        console.log('✓ QR code generated');
+
+    } catch (error) {
+        console.error('✗ QR code generation error:', error);
+        showPaymentError('Failed to generate QR code: ' + error.message);
+    }
+}
+
+/**
+ * Initiate Payment Confirmation
+ *
+ * Called when user clicks "I've Sent the Payment"
+ * Confirms payment with backend
+ */
+async function initiatePayment() {
+    if (!currentPaymentNote || !currentPaymentId) {
+        showSuccessMessage('Error: No payment request found', 'error');
+        return;
+    }
+
+    // Show loading state
+    document.getElementById('paymentDetails').style.display = 'none';
+    document.getElementById('paymentLoading').style.display = 'block';
+
+    try {
+        const note = currentPaymentNote;
+
+        console.log('✓ Confirming payment...');
+
+        // Send confirmation to backend
+        const confirmResponse = await fetch('/api/confirm-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                paymentId: currentPaymentId,
+                transactionId: null  // In real app, user would provide this
+            })
+        });
+
+        const confirmData = await confirmResponse.json();
+
+        if (!confirmData.success) {
+            throw new Error(confirmData.error || 'Payment confirmation failed');
+        }
+
+        console.log('✓ Payment confirmed successfully!');
+        console.log('✓ Access granted to premium note');
+
+        // Mark note as purchased
+        markNoteAsPurchased(currentPaymentNote.id, currentPaymentId);
+
+        // Show success message
+        showPaymentSuccess(`Payment confirmed! You now have access to "${currentPaymentNote.title}".`);
+
+    } catch (error) {
+        console.error('✗ Payment confirmation error:', error);
+        showPaymentError('Payment confirmation failed: ' + error.message);
+    }
+}
+
+/**
+ * Show Payment Success State
+ */
+function showPaymentSuccess(message) {
+    document.getElementById('paymentDetails').style.display = 'none';
+    document.getElementById('paymentLoading').style.display = 'none';
+    document.getElementById('paymentError').style.display = 'none';
+    document.getElementById('paymentSuccess').style.display = 'block';
+    document.getElementById('successMessage').textContent = message;
+
+    console.log('✓ Payment success displayed');
+}
+
+/**
+ * Show Payment Error State
+ */
+function showPaymentError(message) {
+    document.getElementById('paymentDetails').style.display = 'none';
+    document.getElementById('paymentLoading').style.display = 'none';
+    document.getElementById('paymentSuccess').style.display = 'none';
+    document.getElementById('paymentError').style.display = 'block';
+    document.getElementById('errorMessage').textContent = message;
+
+    console.error('✗ Payment error displayed:', message);
+}
+
+/**
+ * Mark Note as Purchased
+ *
+ * Records purchase in localStorage for demo
+ * In production, backend would handle this
+ */
+function markNoteAsPurchased(noteId, paymentId) {
+    let purchases = JSON.parse(localStorage.getItem('noteshub_purchases') || '[]');
+
+    purchases.push({
+        noteId: noteId,
+        paymentId: paymentId,
+        purchasedAt: new Date().toISOString()
+    });
+
+    localStorage.setItem('noteshub_purchases', JSON.stringify(purchases));
+    console.log('💾 Purchase recorded:', noteId);
+}
+
+/**
+ * Check if user has purchased a note
+ */
+function hasPurchasedNote(noteId) {
+    const purchases = JSON.parse(localStorage.getItem('noteshub_purchases') || '[]');
+    return purchases.some(p => p.noteId === noteId);
+}
+
+// Close payment modal when clicking outside
+window.addEventListener('click', (e) => {
+    const paymentModal = document.getElementById('paymentModal');
+    if (e.target === paymentModal) {
+        closePaymentModal();
+    }
+});

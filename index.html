@@ -450,6 +450,88 @@
         </div>
     </div>
 
+    <!-- UPI Payment Integration -->
+    <!-- QR Code generation library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal" style="display: none;">
+        <div class="modal-content payment-modal-content">
+            <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+            <h2 class="modal-title">Purchase Premium Notes</h2>
+
+            <div id="paymentDetails" class="payment-details">
+                <div class="payment-note-info">
+                    <h3 id="paymentNoteTitle">Note Title</h3>
+                    <p id="paymentNotePrice" class="payment-price">₹0</p>
+                    <p id="paymentNoteAuthor" class="payment-author">By Author</p>
+                </div>
+
+                <div class="payment-info-box">
+                    <div class="info-row">
+                        <span>Amount to Pay:</span>
+                        <strong id="paymentAmount">₹0</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Payment Method:</span>
+                        <strong>UPI / GPay</strong>
+                    </div>
+                </div>
+
+                <!-- QR Code Container -->
+                <div id="qrCodeContainer" class="qr-code-container">
+                    <p class="qr-label">Scan to Pay</p>
+                    <div id="qrCode" class="qr-code"></div>
+                    <p class="qr-instructions">Scan this QR code with your GPay or UPI app to send payment</p>
+                </div>
+
+                <!-- Payment Instructions -->
+                <div class="payment-instructions">
+                    <h4>📱 Payment Instructions:</h4>
+                    <ol>
+                        <li>Scan the QR code above with your GPay or any UPI app</li>
+                        <li>Confirm the amount and recipient details</li>
+                        <li>Complete the payment</li>
+                        <li>Note down the Transaction Reference Number (if shown)</li>
+                        <li>Click "I've Sent the Payment" below</li>
+                    </ol>
+                </div>
+
+                <button id="paymentButton" class="btn-auth" onclick="initiatePayment()" style="margin-bottom: 0.5rem;">
+                    I've Sent the Payment
+                </button>
+
+                <p class="payment-security-notice">
+                    ✓ Your payment goes directly to the seller via UPI.
+                    ✓ Secure peer-to-peer transaction.
+                </p>
+            </div>
+
+            <div id="paymentLoading" style="display: none; text-align: center;">
+                <div class="spinner"></div>
+                <p>Confirming your payment...</p>
+            </div>
+
+            <div id="paymentSuccess" style="display: none; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">✓</div>
+                <h3>Payment Confirmed!</h3>
+                <p id="successMessage">Your payment has been received.</p>
+                <button class="btn-auth" onclick="closePaymentModal(); location.reload();">
+                    Continue
+                </button>
+            </div>
+
+            <div id="paymentError" style="display: none;">
+                <div style="font-size: 32px; margin-bottom: 16px; color: #EF4444;">✗</div>
+                <h3 style="color: #EF4444;">Payment Confirmation Failed</h3>
+                <p id="errorMessage">An error occurred during payment confirmation.</p>
+                <button class="btn-auth" onclick="document.getElementById('paymentError').style.display = 'none'; document.getElementById('paymentDetails').style.display = 'block';">
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
