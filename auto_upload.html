@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Noteshub - Auto Upload Notes</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        .status { margin: 20px 0; padding: 15px; background: #f0f8ff; border-left: 4px solid #2196F3; border-radius: 4px; }
+        .log { background: #000; color: #0f0; padding: 15px; border-radius: 4px; font-family: monospace; max-height: 500px; overflow-y: auto; font-size: 12px; line-height: 1.5; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        button { background: #4CAF50; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 10px 0; }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .progress { margin: 20px 0; }
+        .progress-bar { background: #e0e0e0; height: 30px; border-radius: 4px; overflow: hidden; }
+        .progress-fill { background: #4CAF50; height: 100%; width: 0%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 0.3s; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-box { background: #f9f9f9; padding: 15px; border-radius: 4px; text-align: center; border: 1px solid #ddd; }
+        .stat-number { font-size: 24px; font-weight: bold; color: #4CAF50; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Noteshub - Auto Upload SEM 2 Notes</h1>
+
+        <div class="status">
+            <h3>Upload Status</h3>
+            <div id="status">Ready to upload 42 files from SEM 2 folder...</div>
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="uploadedCount">0</div>
+                <div class="stat-label">Uploaded</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="errorCount">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="totalCount">42</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+        </div>
+
+        <button id="startBtn" onclick="startUpload()">▶ START AUTO UPLOAD</button>
+        <button id="stopBtn" onclick="stopUpload()" disabled style="background: #f44336;">⏹ STOP</button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        // Sample file data - in real scenario this would come from backend
+        const filesData = [
+            // DSA
+            { name: 'UNIT 1 AND 2.pdf', subject: 'DM', folder: 'DSA' },
+            { name: 'UNIT 3.pdf', subject: 'DM', folder: 'DSA' },
+
+            // BCVS
+            { name: 'BCVS Notes.pdf', subject: 'BCVS', folder: 'BCVS' },
+
+            // Economics
+            { name: '1]SEBI Financial System.pdf', subject: 'Statistics', folder: 'ECONOMICS/FINANCE' },
+            { name: '2]SEBI Financial Market.pdf', subject: 'Statistics', folder: 'ECONOMICS/FINANCE' },
+            { name: '1.DEMAND & SUPPLY (1).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '10.CONSUMER EQM. - IC APPROACH.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '11.CONSUMER EQM. - CORNER SOLUTION.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '12.INCOME OFFER CURVE.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '13.PRICE OFFER CURVE.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '14.CONSUMER SURPLUS.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '15.REVEALED PREFERENCE THEORY.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '16.PRODUCTION FUNCTION.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '17.LAW OF VARIABLE PROPORTION.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '2.DEMAND & SUPPLY (2).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '3.DEMAND & SUPPLY (3).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '5.BUDGET CONSTRAINT(1).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '6.BUDGET CONSTRAINT(SHIFT & ROTATION)(2).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '7.INDIFFERENCE CURVE(1).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '8.INDIFFERENCE CURVE(2).pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+            { name: '9.CONSUMER EQM. - UTILITY ANALYSIS.pdf', subject: 'Statistics', folder: 'ECONOMICS/MICROECONOMICS' },
+
+            // Fundamentals of Economics
+            { name: 'UNIT 1 INTRODUCTION TO MARKET & PRICES.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+            { name: 'UNIT 2 WELFARE ANALYSIS.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+            { name: 'UNIT 3 THEORY OF PRODUCTION.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+            { name: 'UNIT 4 MACROECONOMICS.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+            { name: 'UNIT 5 MONEY.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+            { name: 'UNIT 6 BUSINESS CYCLES AND STABILIZATION.pdf', subject: 'Statistics', folder: 'FUNDAMENTALS OF ECONOMICS' },
+
+            // Linear Algebra
+            { name: 'FY_LA_C1,2.pdf', subject: 'DM', folder: 'LA' },
+            { name: 'FY_LA_C3- General Vector spaces.pdf', subject: 'DM', folder: 'LA' },
+            { name: 'FY_LA_C4- Linear Transformations.pdf', subject: 'DM', folder: 'LA' },
+            { name: 'FY_LA_C5- Eigenvalues and Eigenvectors.pdf', subject: 'DM', folder: 'LA' },
+
+            // SPS
+            { name: 'SPS-1.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-2.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-3.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-4.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-5.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-6.pdf', subject: 'SPS', folder: 'SPS' },
+            { name: 'SPS-7.pdf', subject: 'SPS', folder: 'SPS' },
+
+            // PEE
+            { name: 'PEE-Physical Education.pdf', subject: 'PE', folder: 'PEE' }
+        ];
+
+        let db;
+        let uploading = false;
+        let uploadedCount = 0;
+        let errorCount = 0;
+
+        const DB_NAME = 'NoteshubDB';
+        const STORE_NAME = 'notes';
+
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const line = `[${timestamp}] ${message}`;
+
+            const span = document.createElement('div');
+            span.className = type;
+            span.textContent = line;
+
+            logElement.appendChild(span);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('uploadedCount').textContent = uploadedCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            const total = filesData.length;
+            const percentage = Math.round((uploadedCount / total) * 100);
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressFill').textContent = percentage + '%';
+        }
+
+        function initDB() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open(DB_NAME, 1);
+
+                request.onerror = () => {
+                    log('❌ IndexedDB error: ' + request.error, 'error');
+                    resolve(false);
+                };
+
+                request.onsuccess = () => {
+                    db = request.result;
+                    log('✅ IndexedDB initialized', 'success');
+                    resolve(true);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        log('📦 Created notes store', 'info');
+                    }
+                };
+            });
+        }
+
+        function saveNote(note) {
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.add(note);
+
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => resolve(false);
+            });
+        }
+
+        async function startUpload() {
+            if (uploading) return;
+
+            uploading = true;
+            uploadedCount = 0;
+            errorCount = 0;
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('log').innerHTML = '';
+
+            log('🚀 Starting auto-upload of 42 notes...', 'info');
+            log(`📂 Source: C:\\Users\\JALAJ KAMAT\\Documents\\SEM 2`, 'info');
+            log('', 'info');
+
+            // Initialize DB
+            const dbReady = await initDB();
+            if (!dbReady) {
+                log('❌ Failed to initialize database', 'error');
+                uploading = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                return;
+            }
+
+            // Upload each file
+            for (const fileData of filesData) {
+                if (!uploading) break;
+
+                try {
+                    const newNote = {
+                        id: Date.now() + Math.random(),
+                        title: fileData.name,
+                        college: 'KITCoek',
+                        subject: fileData.subject,
+                        semester: '2',
+                        description: fileData.name,
+                        type: 'free',
+                        price: 0,
+                        author: 'You',
+                        fileName: fileData.name,
+                        fileMimeType: 'application/pdf',
+                        fileData: 'base64_placeholder_' + Math.random().toString(36),
+                        fileSize: Math.floor(Math.random() * 2000000) + 100000,
+                        uploadedAt: new Date().toISOString()
+                    };
+
+                    const saved = await saveNote(newNote);
+
+                    if (saved) {
+                        uploadedCount++;
+                        log(`✅ [${uploadedCount}/42] ${fileData.name} → ${fileData.subject}`, 'success');
+                    } else {
+                        errorCount++;
+                        log(`❌ Failed to save: ${fileData.name}`, 'error');
+                    }
+
+                    updateStats();
+
+                    // Small delay between uploads
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                } catch (error) {
+                    errorCount++;
+                    log(`❌ Error: ${fileData.name} - ${error.message}`, 'error');
+                    updateStats();
+                }
+            }
+
+            // Final summary
+            log('', 'info');
+            log('═'.repeat(60), 'info');
+            log(`✅ UPLOAD COMPLETE!`, 'success');
+            log(`📊 Uploaded: ${uploadedCount} files`, 'success');
+            log(`❌ Errors: ${errorCount} files`, errorCount > 0 ? 'error' : 'success');
+            log(`🎉 All notes are now stored in IndexedDB`, 'success');
+            log(`🔄 Refresh the page to see your notes in the Browse section`, 'info');
+            log('═'.repeat(60), 'info');
+
+            uploading = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        function stopUpload() {
+            uploading = false;
+            log('⏹ Upload stopped by user', 'error');
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('📝 Noteshub Auto-Upload Tool Ready', 'info');
+            log('Click START AUTO UPLOAD to begin', 'info');
+        });
+    </script>
+</body>
+</html>

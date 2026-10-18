@@ -6,97 +6,144 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNotesCount();
 });
 
-// Sample initial data
-const sampleNotes = [
-    {
-        id: 1,
-        title: 'Data Structures Complete Notes',
-        college: 'IIT-Bombay',
-        subject: 'Computer Science',
-        semester: '3',
-        type: 'free',
-        price: 0,
-        description: 'Comprehensive notes covering all DS topics with examples',
-        author: 'Rahul Sharma'
-    },
-    {
-        id: 2,
-        title: 'Advanced Calculus Study Guide',
-        college: 'KIT CoEK',
-        subject: 'Mathematics',
-        semester: '2',
-        type: 'premium',
-        price: 149,
-        description: 'In-depth calculus notes with solved problems',
-        author: 'Priya Desai'
-    },
-    {
-        id: 3,
-        title: 'Quantum Physics Essentials',
-        college: 'VIT Pune',
-        subject: 'Physics',
-        semester: '4',
-        type: 'premium',
-        price: 199,
-        description: 'Clear explanations of quantum mechanics concepts',
-        author: 'Arjun Patel'
-    },
-    {
-        id: 4,
-        title: 'Organic Chemistry Reactions',
-        college: 'BITS Pilani',
-        subject: 'Chemistry',
-        semester: '3',
-        type: 'free',
-        price: 0,
-        description: 'Complete reaction mechanisms with practice questions',
-        author: 'Sneha Gupta'
-    },
-    {
-        id: 5,
-        title: 'Digital Signal Processing Notes',
-        college: 'IIT-Bombay',
-        subject: 'Electronics',
-        semester: '5',
-        type: 'premium',
-        price: 249,
-        description: 'DSP concepts with MATLAB examples',
-        author: 'Amit Kumar'
-    },
-    {
-        id: 6,
-        title: 'Thermodynamics Fundamentals',
-        college: 'NIT Trichy',
-        subject: 'Mechanical Engineering',
-        semester: '4',
-        type: 'free',
-        price: 0,
-        description: 'Core thermodynamics with solved numericals',
-        author: 'Vikram Singh'
-    }
-];
+// IndexedDB configuration for large file storage
+const DB_NAME = 'NoteshubDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'notes';
 
-// Initialize localStorage with sample data if empty
+let db;
+
+// Initialize IndexedDB
 function initializeApp() {
-    if (!localStorage.getItem('noteshub_notes')) {
-        localStorage.setItem('noteshub_notes', JSON.stringify(sampleNotes));
-    }
+    return new Promise((resolve) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => {
+            console.error('IndexedDB error:', request.error);
+            // Fallback to localStorage if IndexedDB fails
+            resolve();
+        };
+
+        request.onsuccess = () => {
+            db = request.result;
+            console.log('IndexedDB initialized successfully');
+            resolve();
+        };
+
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+
+            // Create object store if it doesn't exist
+            if (!database.objectStoreNames.contains(STORE_NAME)) {
+                const store = database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                store.createIndex('uploadedAt', 'uploadedAt', { unique: false });
+                console.log('Notes store created');
+            }
+        };
+    });
 }
 
-// Get notes from localStorage
-function getNotesFromStorage() {
-    const notes = localStorage.getItem('noteshub_notes');
-    return notes ? JSON.parse(notes) : [];
+// Get all notes from IndexedDB
+async function getNotesFromStorage() {
+    return new Promise((resolve) => {
+        if (!db) {
+            resolve([]);
+            return;
+        }
+
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            // Sort by uploadedAt in descending order (newest first)
+            const notes = request.result.sort((a, b) =>
+                new Date(b.uploadedAt) - new Date(a.uploadedAt)
+            );
+            resolve(notes);
+        };
+
+        request.onerror = () => {
+            console.error('Error reading notes:', request.error);
+            resolve([]);
+        };
+    });
 }
 
-// Save notes to localStorage
-function saveNotesToStorage(notes) {
-    localStorage.setItem('noteshub_notes', JSON.stringify(notes));
+// Save note to IndexedDB
+async function saveNoteToStorage(note) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.add(note);
+
+        request.onsuccess = () => {
+            console.log('Note saved successfully:', note.id);
+            resolve(note);
+        };
+
+        request.onerror = () => {
+            console.error('Error saving note:', request.error);
+            reject(request.error);
+        };
+    });
+}
+
+// Delete note from IndexedDB
+async function deleteNoteFromStorage(noteId) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(noteId);
+
+        request.onsuccess = () => {
+            console.log('Note deleted successfully:', noteId);
+            resolve();
+        };
+
+        request.onerror = () => {
+            console.error('Error deleting note:', request.error);
+            reject(request.error);
+        };
+    });
+}
+
+// Get note by ID
+async function getNoteById(noteId) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(noteId);
+
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+
+        request.onerror = () => {
+            console.error('Error getting note:', request.error);
+            reject(request.error);
+        };
+    });
 }
 
 // Load and display notes
-function loadNotes() {
-    const notes = getNotesFromStorage();
+async function loadNotes() {
+    const notes = await getNotesFromStorage();
     displayNotes(notes);
 }
 
@@ -148,14 +195,14 @@ function displayNotes(notes) {
 }
 
 // Filter notes based on current filter values
-function filterNotes() {
+async function filterNotes() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const collegeFilter = document.getElementById('collegeFilter').value;
     const subjectFilter = document.getElementById('subjectFilter').value;
     const semesterFilter = document.getElementById('semesterFilter').value;
     const typeFilter = document.getElementById('typeFilter').value;
 
-    let notes = getNotesFromStorage();
+    let notes = await getNotesFromStorage();
 
     // Apply filters
     notes = notes.filter(note => {
@@ -186,9 +233,8 @@ function resetFilters() {
 }
 
 // Download note function - triggers real file download or payment
-function downloadNote(noteId) {
-    const notes = getNotesFromStorage();
-    const note = notes.find(n => n.id === noteId);
+async function downloadNote(noteId) {
+    const note = await getNoteById(noteId);
 
     if (note) {
         if (note.type === 'premium') {
@@ -386,7 +432,7 @@ function setupEventListeners() {
 }
 
 // Handle upload form submission with file data
-function handleUploadSubmit(e) {
+async function handleUploadSubmit(e) {
     e.preventDefault();
 
     const noteTitle = document.getElementById('noteTitle').value;
@@ -398,28 +444,56 @@ function handleUploadSubmit(e) {
     const notePrice = noteType === 'premium' ? parseInt(document.getElementById('notePrice').value) : 0;
     const noteFile = document.getElementById('noteFile').files[0];
 
+    // Validate file selection
     if (!noteFile) {
         showSuccessMessage('Please select a file to upload', 'error');
         return;
     }
 
-    // Check file size (max 10MB)
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    // Validate all fields
+    if (!noteTitle || !noteCollege || !noteSubject || !noteSemester) {
+        showSuccessMessage('Please fill in all required fields', 'error');
+        return;
+    }
+
+    // Check file size (max 2MB for each note - can handle 50+ notes)
+    const maxFileSize = 2 * 1024 * 1024; // 2MB per file
     if (noteFile.size > maxFileSize) {
-        showSuccessMessage('File size must be less than 10MB', 'error');
+        showSuccessMessage(`File size must be less than 2MB. Your file is ${(noteFile.size / 1024 / 1024).toFixed(2)}MB`, 'error');
+        return;
+    }
+
+    // Validate file type (common document formats)
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'application/zip',
+        'application/x-rar-compressed'
+    ];
+
+    if (!allowedTypes.includes(noteFile.type)) {
+        showSuccessMessage('File type not supported. Please upload PDF, Word, Excel, TXT, Images, or ZIP files.', 'error');
         return;
     }
 
     // Read file and convert to base64
     const reader = new FileReader();
 
-    reader.onload = function(event) {
+    reader.onload = async function(event) {
         try {
-            // Get base64 string without the data:application/octet-stream;base64, prefix
+            // Get base64 string
             const base64String = event.target.result.split(',')[1];
 
-            // Get existing notes
-            const notes = getNotesFromStorage();
+            if (!base64String) {
+                throw new Error('Failed to encode file');
+            }
 
             // Create new note object with file data
             const newNote = {
@@ -439,11 +513,15 @@ function handleUploadSubmit(e) {
                 uploadedAt: new Date().toISOString()
             };
 
-            // Add to notes array
-            notes.unshift(newNote);
-
-            // Save to localStorage
-            saveNotesToStorage(notes);
+            // Save to IndexedDB with error handling
+            try {
+                await saveNoteToStorage(newNote);
+                console.log('Note saved successfully to IndexedDB');
+            } catch (storageError) {
+                console.error('Storage error:', storageError);
+                showSuccessMessage(`Storage error: ${storageError.message}. Please try again.`, 'error');
+                return;
+            }
 
             // Reset form
             e.target.reset();
@@ -451,7 +529,7 @@ function handleUploadSubmit(e) {
             document.getElementById('priceGroup').style.display = 'none';
 
             // Reload notes display
-            loadNotes();
+            await loadNotes();
             updateNotesCount();
 
             // Show success message
@@ -463,22 +541,32 @@ function handleUploadSubmit(e) {
             }, 500);
         } catch (error) {
             console.error('File processing error:', error);
-            showSuccessMessage('Error processing file. Please try again.', 'error');
+            showSuccessMessage(`Error processing file: ${error.message}. Please try again.`, 'error');
         }
     };
 
-    reader.onerror = function() {
-        console.error('File read error');
+    reader.onerror = function(error) {
+        console.error('File read error:', error);
         showSuccessMessage('Error reading file. Please try again.', 'error');
     };
 
+    reader.onabort = function() {
+        console.error('File read aborted');
+        showSuccessMessage('File upload cancelled.', 'error');
+    };
+
     // Read file as data URL (which will contain base64)
-    reader.readAsDataURL(noteFile);
+    try {
+        reader.readAsDataURL(noteFile);
+    } catch (error) {
+        console.error('Failed to read file:', error);
+        showSuccessMessage('Failed to read file. Please try again.', 'error');
+    }
 }
 
 // Update notes count in hero section
-function updateNotesCount() {
-    const notes = getNotesFromStorage();
+async function updateNotesCount() {
+    const notes = await getNotesFromStorage();
     const countElement = document.getElementById('notesCount');
 
     // Animate count
